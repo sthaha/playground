@@ -1,0 +1,49 @@
+# NOTES: run setup.sh to setup volumes
+
+version: '2.1'
+
+services:
+  jenkins:
+    image: jenkins
+    ports:
+      - "127.0.0.1:8080:8080"
+      # - "50000:50000"  # for external slaves
+    volumes:
+      - jenkins_home:/var/jenkins_home jenkins
+    links:
+      - gitolite
+      - slave01
+      - slave02
+    expose:
+      - 50000
+
+  slave01: &slave
+    image: evarga/jenkins-slave
+    expose:
+      - 22
+    links:
+      - gitolite
+
+  slave02:
+    <<: *slave
+
+
+  gitolite:
+    image: jgiannuzzi/gitolite
+
+    ports:
+      - "127.0.0.1:2022:22"
+
+    expose:
+      - 22
+
+    volumes:
+      - jenkins_gitolite_sshkeys:/etc/ssh/keys
+      - jenkins_gitolite_git:/var/lib/git
+
+volumes:
+  jenkins_home:
+  jenkins_gitolite_sshkeys:
+    external: true
+  jenkins_gitolite_git:
+    external: true
